@@ -1,0 +1,33 @@
+name: Build ViP3R Kernel
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      KERNEL_REPO: https://github.com/ViP3R-KERNELs/android_kernel_samsung_sm8650
+      KERNEL_BRANCH: NETHUNTER-A14
+      DEVICE: SM-F741B
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v3
+
+      - name: Setup compiler
+        run: |
+          sudo apt update
+          sudo apt install -y gcc make git bc ccache
+
+      - name: Build kernel
+        run: |
+          export ARCH=arm64
+          export CROSS_COMPILE=aarch64-linux-gnu-
+          make O=out $DEVICE_defconfig
+          make -j$(nproc) O=out
+
+      - name: Upload boot.img
+        uses: actions/upload-artifact@v3
+        with:
+          name: boot-img
+          path: out/arch/arm64/boot/Image.gz-dtb
